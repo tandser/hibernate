@@ -6,12 +6,20 @@
 
     <persistence-unit name="HelloWorldPU">
         <jta-data-source>DataSource</jta-data-source>
-        <class>ru.tandser.hibernate.models.Message</class>
+        <!--<class>ru.tandser.hibernate.models</class>-->
+        <class>ru.tandser.hibernate.models.MessageA</class>
+        <class>ru.tandser.hibernate.models.MessageB</class>
+        <class>ru.tandser.hibernate.models.Details</class>
+        <class>ru.tandser.hibernate.models.DetailsA</class>
+        <class>ru.tandser.hibernate.models.DetailsB</class>
+        <class>ru.tandser.hibernate.models.CardA</class>
+        <class>ru.tandser.hibernate.models.CardB</class>
         <exclude-unlisted-classes>true</exclude-unlisted-classes>
         <properties>
             <property name="javax.persistence.schema-generation.database.action" value="drop-and-create"/>
             <property name="hibernate.format_sql" value="true"/>
             <property name="hibernate.use_sql_comments" value="true"/>
+            <!--<property name="hibernate.physical_naming_strategy" value="ru.tandser.hibernate.NamingStrategy"/>-->
         </properties>
     </persistence-unit>
 

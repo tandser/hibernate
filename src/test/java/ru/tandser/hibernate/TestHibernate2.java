@@ -10,7 +10,8 @@ import org.hibernate.cfg.Environment;
 import org.hibernate.resource.transaction.backend.jta.internal.JtaTransactionCoordinatorBuilderImpl;
 import org.hibernate.service.ServiceRegistry;
 import org.junit.Test;
-import ru.tandser.hibernate.models.Message;
+import ru.tandser.hibernate.models.MessageA;
+import ru.tandser.hibernate.models.MessageB;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -37,7 +38,8 @@ public class TestHibernate2 extends AbstractTestHibernate {
 
         MetadataSources metadataSources = new MetadataSources(serviceRegistry);
 
-        metadataSources.addAnnotatedClass(Message.class);
+        metadataSources.addAnnotatedClass(MessageA.class);
+        metadataSources.addAnnotatedClass(MessageB.class);
 
         MetadataBuilder metadataBuilder = metadataSources.getMetadataBuilder();
 
@@ -50,25 +52,44 @@ public class TestHibernate2 extends AbstractTestHibernate {
     public void test() throws Exception {
         SessionFactory  sessionFactory = createSessionFactory();
         UserTransaction transaction;
+        Session         session;
 
         try {
+
+            // add messageA
+
             transaction = transactionManagerSetup.getUserTransaction();
             transaction.begin();
-            Session session = sessionFactory.getCurrentSession();
-            Message message = new Message("Hello World!");
-            session.persist(message);
+            session = sessionFactory.getCurrentSession();
+            MessageA messageA = new MessageA("A: Hello World!");
+            session.persist(messageA);
+            transaction.commit();
+
+            // add messageB
+
+            transaction = transactionManagerSetup.getUserTransaction();
+            transaction.begin();
+            session = sessionFactory.getCurrentSession();
+            MessageB messageB = new MessageB("B: Hello World!");
+            session.persist(messageB);
             transaction.commit();
 
             transaction = transactionManagerSetup.getUserTransaction();
             transaction.begin();
             session = sessionFactory.getCurrentSession();
             CriteriaBuilder criteriaBuilder = session.getCriteriaBuilder();
-            CriteriaQuery<Message> criteriaQuery = criteriaBuilder.createQuery(Message.class);
-            Root<Message> root = criteriaQuery.from(Message.class);
-            criteriaQuery.select(root);
-            List<Message> messages = session.createQuery(criteriaQuery).getResultList();
-            assertEquals(1, messages.size());
-            assertEquals("Hello World!", messages.get(0).getText());
+            CriteriaQuery<MessageA> criteriaQueryA = criteriaBuilder.createQuery(MessageA.class);
+            CriteriaQuery<MessageB> criteriaQueryB = criteriaBuilder.createQuery(MessageB.class);
+            Root<MessageA> rootA = criteriaQueryA.from(MessageA.class);
+            Root<MessageB> rootB = criteriaQueryB.from(MessageB.class);
+            criteriaQueryA.select(rootA);
+            criteriaQueryB.select(rootB);
+            List<MessageA> messagesA = session.createQuery(criteriaQueryA).getResultList();
+            List<MessageB> messagesB = session.createQuery(criteriaQueryB).getResultList();
+            assertEquals(1, messagesA.size());
+            assertEquals(1, messagesB.size());
+            assertEquals("A: Hello World!", messagesA.get(0).getText());
+            assertEquals("B: Hello World!", messagesB.get(0).getText());
             transaction.commit();
         } finally {
             transactionManagerSetup.rollback();
